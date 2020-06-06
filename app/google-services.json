@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "658871956429",
+    "firebase_url": "https://podroznik-74bef.firebaseio.com",
+    "project_id": "podroznik-74bef",
+    "storage_bucket": "podroznik-74bef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658871956429:android:90cf00fde02f1896fb8a84",
+        "android_client_info": {
+          "package_name": "com.example.podroznik"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "658871956429-ndvf216ulgr47ggq7p9tfaa6f4mh6dua.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmQKj5ypq74VP41FI6vgXkM3XXHzutJtk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "658871956429-ndvf216ulgr47ggq7p9tfaa6f4mh6dua.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
