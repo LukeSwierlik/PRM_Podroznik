@@ -1,18 +1,22 @@
 package com.example.podroznik.activities
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.podroznik.R
+import com.example.podroznik.adapters.Adapter
+import com.example.podroznik.models.Note
 import com.example.podroznik.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import kotlinx.android.synthetic.main.activity_notes.*
 
 private val TAG = "TAG"
 class NotesActivity : AppCompatActivity() {
@@ -20,6 +24,7 @@ class NotesActivity : AppCompatActivity() {
     private lateinit var username: TextView
     private lateinit var firebaseUser: FirebaseUser
     private lateinit var dbRef: DatabaseReference
+    private lateinit var listOfNotes: ArrayList<Note>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,10 +46,48 @@ class NotesActivity : AppCompatActivity() {
 
             override fun onCancelled(error: DatabaseError) {}
         })
+
+        val firebase = FirebaseDatabase.getInstance()
+        dbRef = firebase.getReference("Notes")
+
+        dbRef.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                listOfNotes = ArrayList()
+
+                for (i in dataSnapshot.children) {
+                    val newRow = i.getValue(Note::class.java)
+
+                    if (newRow!!.userId == firebaseUser.uid) {
+                        val note = Note();
+
+                        note.name = newRow.name
+                        note.description = newRow.description
+                        note.diameterCircle = newRow.diameterCircle
+
+                        listOfNotes.add(newRow)
+                    }
+                }
+
+                if (listOfNotes.size > 0) {
+                    EMPTY_STATE_CONTAINER.visibility = View.INVISIBLE
+                    LIST_CONTAINER.visibility = View.VISIBLE
+
+                    Log.d(TAG, listOfNotes.toString())
+
+                    setupAdapter(listOfNotes)
+                } else {
+                    EMPTY_STATE_CONTAINER.visibility = View.VISIBLE
+                    LIST_CONTAINER.visibility = View.INVISIBLE
+                }
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        Log.d(TAG, "====== jest menu")
         menuInflater.inflate(R.menu.menu, menu)
         return true
     }
@@ -66,5 +109,10 @@ class NotesActivity : AppCompatActivity() {
     fun onClickNoteDetails(view: View) {
         val intent = Intent(applicationContext, NoteDetailsActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun setupAdapter(arrayData: ArrayList<Note>) {
+        recyclerView.layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView.adapter = Adapter(arrayData)
     }
 }

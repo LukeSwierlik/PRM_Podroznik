@@ -1,6 +1,6 @@
 package com.example.podroznik.models
 
-class User() {
-    val id: String = "0"
+data class User (
+    val id: String = "",
     val username: String = ""
-}
+)
