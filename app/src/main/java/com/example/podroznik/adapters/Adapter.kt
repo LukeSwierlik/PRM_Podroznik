@@ -23,8 +23,6 @@ class Adapter(private val dataArray: ArrayList<Note>): RecyclerView.Adapter<Adap
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        Log.d("TAG", "onBindViewHolder")
-
         val name = holder.itemView.NAME_TEXT_VIEW_CARD
         val description = holder.itemView.DESCRIPTION_TEXT_VIEW_CARD
         val diameterCircle = holder.itemView.DIAMETER_CIRCLE
@@ -32,8 +30,6 @@ class Adapter(private val dataArray: ArrayList<Note>): RecyclerView.Adapter<Adap
         name.text = dataArray[holder.adapterPosition].name
         description.text = dataArray[holder.adapterPosition].description
         diameterCircle.text = dataArray[holder.adapterPosition].diameterCircle.toString()
-
-        Log.d("TAG", name.toString())
     }
 
     inner class MyViewHolder(view: View): RecyclerView.ViewHolder(view) {

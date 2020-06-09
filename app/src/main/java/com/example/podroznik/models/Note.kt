@@ -5,5 +5,6 @@ data class Note (
     var description: String = "",
     var diameterCircle: Double = 0.0,
     var userId: String = "",
-    var noteId: String? = ""
+    var noteId: String? = "",
+    var imageURL: String = ""
 )

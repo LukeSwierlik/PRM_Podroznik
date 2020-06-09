@@ -2,26 +2,21 @@ package com.example.podroznik.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.podroznik.R
 import com.example.podroznik.adapters.Adapter
 import com.example.podroznik.models.Note
-import com.example.podroznik.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_notes.*
 
-private val TAG = "TAG"
 class NotesActivity : AppCompatActivity() {
 
-    private lateinit var username: TextView
     private lateinit var firebaseUser: FirebaseUser
     private lateinit var dbRef: DatabaseReference
     private lateinit var listOfNotes: ArrayList<Note>
@@ -30,22 +25,7 @@ class NotesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_notes)
 
-//        username = findViewById(R.id.username)
-
         firebaseUser = FirebaseAuth.getInstance().currentUser!!
-        dbRef = FirebaseDatabase
-            .getInstance()
-            .getReference("Users")
-            .child(firebaseUser.uid)
-
-        dbRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val user: User = snapshot.getValue(User::class.java) as User
-//                username.text = user.username
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
 
         val firebase = FirebaseDatabase.getInstance()
         dbRef = firebase.getReference("Notes")
@@ -76,8 +56,6 @@ class NotesActivity : AppCompatActivity() {
                     EMPTY_STATE_CONTAINER.visibility = View.INVISIBLE
                     LIST_CONTAINER.visibility = View.VISIBLE
 
-                    Log.d(TAG, listOfNotes.toString())
-
                     setupAdapter(listOfNotes)
                 } else {
                     EMPTY_STATE_CONTAINER.visibility = View.VISIBLE
@@ -89,7 +67,8 @@ class NotesActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
-        return true
+
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
