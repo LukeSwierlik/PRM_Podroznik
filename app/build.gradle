@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 29
@@ -42,9 +43,13 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:6.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.firebase:firebase-core:17.4.2'
+    implementation 'com.google.firebase:firebase-core:17.4.3'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'com.google.firebase:firebase-messaging:20.2.0'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    kapt "android.arch.lifecycle:compiler:1.1.1"
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.firebaseui:firebase-ui-storage:3.1.0'
 }

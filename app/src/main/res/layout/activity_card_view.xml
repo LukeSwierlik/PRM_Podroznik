@@ -7,7 +7,7 @@
     tools:context=".activities.CardViewActivity">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/USER_CARD_VIEW"
+        android:id="@+id/NOTE_CARD_VIEW"
         android:layout_width="409dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"

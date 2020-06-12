@@ -8,7 +8,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.podroznik.R
-import com.example.podroznik.adapters.Adapter
+import com.example.podroznik.adapters.CardViewAdapter
 import com.example.podroznik.models.Note
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -92,6 +92,6 @@ class NotesActivity : AppCompatActivity() {
 
     private fun setupAdapter(arrayData: ArrayList<Note>) {
         recyclerView.layoutManager = LinearLayoutManager(applicationContext)
-        recyclerView.adapter = Adapter(arrayData)
+        recyclerView.adapter = CardViewAdapter(arrayData)
     }
 }
