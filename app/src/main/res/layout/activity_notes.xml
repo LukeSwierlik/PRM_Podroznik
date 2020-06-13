@@ -7,6 +7,16 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
+    <ProgressBar
+        android:id="@+id/NOTES_PROGRESS_BAR"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/LIST_CONTAINER"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/LIST_CONTAINER" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/LIST_CONTAINER"
         android:layout_width="match_parent"
@@ -47,6 +57,7 @@
             android:layout_marginEnd="108dp"
             android:layout_marginBottom="291dp"
             android:text="You currently have no notes."
+            android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

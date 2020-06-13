@@ -18,7 +18,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.android.synthetic.main.activity_card_view.view.*
 
-
 class CardViewAdapter(
     private val mNotes: ArrayList<Note>
 ): RecyclerView.Adapter<CardViewAdapter.MyViewHolder>() {
@@ -66,9 +65,9 @@ class CardViewAdapter(
         noteCardView.setOnLongClickListener {
             val builder = AlertDialog.Builder(context)
 
-            builder.setTitle("Removal of the user along with the debt")
+            builder.setTitle("Delete note")
 
-            builder.setMessage("Are you sure you want to delete the user and his debt?")
+            builder.setMessage("Are you sure you want to delete the note?")
 
             builder.setPositiveButton("Yes") { _, _ ->
                 removeNote(context, holder.adapterPosition, idEdit, imageURLEdit)
@@ -87,12 +86,8 @@ class CardViewAdapter(
     }
 
     private fun removeNote(context: Context, position: Int, noteId: String, imageURL: String) {
-
         val ref = FirebaseDatabase.getInstance().reference
         val applesQuery: Query = ref.child("Notes").orderByChild("noteId").equalTo(noteId)
-
-        Log.d("TAG", noteId)
-        Log.d("TAG", imageURL)
 
         applesQuery.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -103,14 +98,14 @@ class CardViewAdapter(
                 val firebaseStorage = FirebaseStorage.getInstance()
                 val photoRef: StorageReference = firebaseStorage.getReferenceFromUrl(imageURL)
 
-                photoRef.delete().addOnSuccessListener { // File deleted successfully
+                photoRef.delete().addOnSuccessListener {
                     mNotes.removeAt(position)
                     notifyItemRemoved(position)
 
                     Toast
                         .makeText(context, "Removed!", Toast.LENGTH_SHORT)
                         .show()
-                }.addOnFailureListener { // Uh-oh, an error occurred!
+                }.addOnFailureListener {
 
                 }
             }

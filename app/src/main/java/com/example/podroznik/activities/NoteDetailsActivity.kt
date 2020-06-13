@@ -2,7 +2,6 @@ package com.example.podroznik.activities
 
 import android.app.Activity
 import android.app.ProgressDialog
-import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -19,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.example.podroznik.R
 import com.example.podroznik.models.Note
+import com.example.podroznik.objects.Config
 import com.example.podroznik.objects.Fields
 import com.example.podroznik.objects.GlideApp
 import com.google.firebase.auth.FirebaseAuth
@@ -34,32 +34,25 @@ import java.util.*
 
 class NoteDetailsActivity : AppCompatActivity() {
 
-    private lateinit var myRef: DatabaseReference
-
+    private var databaseReference: DatabaseReference? = null
     private var filePath: Uri? = null
-
-    private val PICK_IMAGE_REQUEST = 71
-
-    private var isChooseNewImage = false
-    var storage: FirebaseStorage? = null
-    var storageReference: StorageReference? = null
-
+    private var storageReference: StorageReference? = null
     private var mCurrentPhotoPath: String? = null;
 
-    val REQUEST_IMAGE_CAPTURE = 1
+    private var isChooseNewImage = false
+
+    companion object {
+        private const val REQUEST_IMAGE_CAPTURE = 1
+        private const val PICK_IMAGE_REQUEST = 71
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_details)
 
+        initFirebase()
         viewExtraParamsInActivity()
-
-        storage = FirebaseStorage.getInstance();
-        storageReference = storage!!.reference;
-
-        btnChoose.setOnClickListener { chooseImage() }
-
-        btnUpload.setOnClickListener { uploadImage() }
+        listenerButtons()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -78,9 +71,14 @@ class NoteDetailsActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE &&
+            resultCode == Activity.RESULT_OK) {
+            Log.d("TAG data", data.toString())
+
             val bitmap: Bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath)
-            imgView.setImageBitmap(bitmap)
+            isChooseNewImage = true
+
+            IMAGE_VIEW.setImageBitmap(bitmap)
         }
 
         if (requestCode == PICK_IMAGE_REQUEST &&
@@ -88,38 +86,18 @@ class NoteDetailsActivity : AppCompatActivity() {
             data != null && data.data != null) {
             filePath = data.data
 
+            Log.d("TAG data 2", data.toString())
+
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
 
                 isChooseNewImage = true
+                Log.d("TAG zmieniono", isChooseNewImage.toString())
 
-                imgView.setImageBitmap(bitmap)
+                IMAGE_VIEW.setImageBitmap(bitmap)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-        }
-    }
-
-    private fun updateNotes() {
-        val noteId = intent.getStringExtra(Fields.ID)
-
-        if (isChooseNewImage) {
-            uploadImage(noteId)
-        } else {
-            val name = NAME_EDIT_TEXT_DETAILS.text.toString()
-            val description = DESCRIPTION_EDIT_TEXT_DETAILS.text.toString()
-            val diameterCircle = DIAMETER_EDIT_TEXT_DETAILS.text.toString().toDouble()
-            val userId = FirebaseAuth.getInstance().currentUser!!.uid
-            val imageURL = intent.getStringExtra(Fields.IMAGE_URL)
-
-            val firebaseInput = Note(name, description, diameterCircle, userId, noteId, imageURL)
-
-            val firebase = FirebaseDatabase.getInstance()
-            myRef = firebase.getReference("Notes")
-
-            myRef.child(noteId).setValue(firebaseInput)
-
-            Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -127,31 +105,35 @@ class NoteDetailsActivity : AppCompatActivity() {
         openCamera()
     }
 
+    private fun updateNotes() {
+        val noteId = intent.getStringExtra(Fields.ID)
+        val imageURL = intent.getStringExtra(Fields.IMAGE_URL)
+
+        Log.d("TAG 1", imageURL)
+        Log.d("TAG 1", noteId)
+        Log.d("TAG 1", isChooseNewImage.toString())
+
+        if (isChooseNewImage) {
+            uploadImage(noteId)
+        } else if (noteId.isNotEmpty()) {
+            save(noteId, imageURL)
+        } else {
+            save(null, imageURL)
+        }
+    }
+
     private fun openCamera() {
-        val intent: Intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val file: File = createFile()
 
         val uri: Uri = FileProvider.getUriForFile(
             this,
-            "com.example.podroznik.fileprovider",
+            Config.AUTHORITY_FILE_PROVIDER,
             file
         )
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
+        filePath = uri
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
-    }
-
-    @Throws(IOException::class)
-    private fun createFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-
-        return File.createTempFile(
-            "JPEG_${timeStamp}_",
-            ".jpg",
-            storageDir
-        ).apply {
-            mCurrentPhotoPath = absolutePath
-        }
     }
 
     private fun chooseImage() {
@@ -168,38 +150,20 @@ class NoteDetailsActivity : AppCompatActivity() {
             progressDialog.setTitle("Uploading...")
             progressDialog.show()
 
-            val ref =
-                storageReference!!.child("images/" + UUID.randomUUID().toString())
+            val ref = storageReference!!.child(Config.STORAGE_IMAGES + UUID.randomUUID().toString())
 
             ref.putFile(filePath!!)
                 .addOnSuccessListener {
                     progressDialog.dismiss()
 
-                    ref.downloadUrl.addOnCompleteListener () {taskSnapshot ->
+                    ref.downloadUrl.addOnCompleteListener () { taskSnapshot ->
                         val url = taskSnapshot.result
                         val imageURL = url.toString()
 
-                        val name = NAME_EDIT_TEXT_DETAILS.text.toString()
-                        val description = DESCRIPTION_EDIT_TEXT_DETAILS.text.toString()
-                        val diameterCircle = DIAMETER_EDIT_TEXT_DETAILS.text.toString().toDouble()
-                        val userId = FirebaseAuth.getInstance().currentUser!!.uid
-                        var noteId = "${Date().time}";
+                        Log.d("TAG 2", imageURL)
+                        Log.d("TAG 2", noteUuid)
 
-                        if (noteUuid != null) {
-                            Log.d("TAG", "podmianka")
-                            noteId = noteUuid
-                        }
-
-                        val firebaseInput = Note(name, description, diameterCircle, userId, noteId, imageURL)
-
-                        val firebase = FirebaseDatabase.getInstance()
-                        myRef = firebase.getReference("Notes")
-
-                        Log.d("TAG", firebaseInput.toString())
-
-                        myRef.child(noteId).setValue(firebaseInput)
-
-                        Toast.makeText(this, "Uploaded", Toast.LENGTH_SHORT).show()
+                        save(noteUuid, imageURL)
                     }
                 }
                 .addOnFailureListener { e ->
@@ -216,15 +180,35 @@ class NoteDetailsActivity : AppCompatActivity() {
         }
     }
 
+    private fun save(noteUuid: String?, imageURL: String) {
+        val name = NAME_EDIT_TEXT.text.toString()
+        val description = DESCRIPTION_EDIT_TEXT.text.toString()
+        val diameterCircle = DIAMETER_EDIT_TEXT.text.toString().toDouble()
+        val userId = FirebaseAuth.getInstance().currentUser!!.uid
+        var noteId = "${Date().time}";
+
+        if (noteUuid != null) {
+            noteId = noteUuid
+        }
+
+        val firebaseInput = Note(name, description, diameterCircle, userId, noteId, imageURL)
+
+        databaseReference!!.child(noteId).setValue(firebaseInput)
+
+        Toast
+            .makeText(this, "Saved", Toast.LENGTH_SHORT)
+            .show()
+    }
+
     private fun viewExtraParamsInActivity() {
         if (intent.hasExtra(Fields.NAME) &&
             intent.hasExtra(Fields.DESCRIPTION) &&
             intent.hasExtra(Fields.DIAMETER_CIRCLE) &&
             intent.hasExtra(Fields.IMAGE_URL)) {
 
-            NAME_EDIT_TEXT_DETAILS.setText(intent.getStringExtra(Fields.NAME))
-            DESCRIPTION_EDIT_TEXT_DETAILS.setText(intent.getStringExtra(Fields.DESCRIPTION))
-            DIAMETER_EDIT_TEXT_DETAILS.setText(intent.getStringExtra(Fields.DIAMETER_CIRCLE))
+            NAME_EDIT_TEXT.setText(intent.getStringExtra(Fields.NAME))
+            DESCRIPTION_EDIT_TEXT.setText(intent.getStringExtra(Fields.DESCRIPTION))
+            DIAMETER_EDIT_TEXT.setText(intent.getStringExtra(Fields.DIAMETER_CIRCLE))
 
             val imageURL = intent.getStringExtra(Fields.IMAGE_URL)
             val storage = FirebaseStorage.getInstance();
@@ -232,7 +216,33 @@ class NoteDetailsActivity : AppCompatActivity() {
 
             GlideApp.with(this)
                 .load(gsReference)
-                .into(imgView)
+                .into(IMAGE_VIEW)
+        }
+    }
+
+    private fun listenerButtons() {
+        PHOTO_ACTION_BUTTON.setOnClickListener { chooseImage() }
+    }
+
+    private fun initFirebase() {
+        val storage = FirebaseStorage.getInstance()
+        storageReference = storage.reference
+
+        val firebase = FirebaseDatabase.getInstance()
+        databaseReference = firebase.getReference(Config.TABLE_NOTES)
+    }
+
+    @Throws(IOException::class)
+    private fun createFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        ).apply {
+            mCurrentPhotoPath = absolutePath
         }
     }
 }

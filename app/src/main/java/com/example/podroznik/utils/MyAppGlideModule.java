@@ -1,4 +1,4 @@
-package com.example.podroznik.objects;
+package com.example.podroznik.utils;
 
 import android.content.Context;
 

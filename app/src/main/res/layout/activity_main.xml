@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Podroznik"
+        android:text="@string/podroznik"
         android:textSize="25sp"
         android:textStyle="bold"
         android:textColor="#fff"
@@ -31,8 +31,8 @@
         android:layout_marginRight="50dp"
         android:background="@color/colorPrimaryDark"
         android:textColor="#fff"
-        android:id="@+id/login"
-        android:text="Login"
+        android:id="@+id/LOGIN_BTN"
+        android:text="@string/login"
         />
 
     <Button
@@ -43,8 +43,8 @@
         android:layout_marginRight="50dp"
         android:background="@color/colorPrimaryDark"
         android:textColor="#fff"
-        android:id="@+id/register"
-        android:text="Register"
+        android:id="@+id/REGISTER_BTN"
+        android:text="@string/register"
         />
 
 </LinearLayout>

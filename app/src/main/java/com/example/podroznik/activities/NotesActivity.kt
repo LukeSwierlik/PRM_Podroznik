@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.podroznik.R
 import com.example.podroznik.adapters.CardViewAdapter
 import com.example.podroznik.models.Note
+import com.example.podroznik.objects.Config
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -18,19 +19,16 @@ import kotlinx.android.synthetic.main.activity_notes.*
 class NotesActivity : AppCompatActivity() {
 
     private lateinit var firebaseUser: FirebaseUser
-    private lateinit var dbRef: DatabaseReference
+    private lateinit var databaseReference: DatabaseReference
     private lateinit var listOfNotes: ArrayList<Note>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_notes)
 
-        firebaseUser = FirebaseAuth.getInstance().currentUser!!
+        initFirebase()
 
-        val firebase = FirebaseDatabase.getInstance()
-        dbRef = firebase.getReference("Notes")
-
-        dbRef.addValueEventListener(object : ValueEventListener {
+        databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(databaseError: DatabaseError) {
                 TODO("Not yet implemented")
             }
@@ -61,6 +59,8 @@ class NotesActivity : AppCompatActivity() {
                     EMPTY_STATE_CONTAINER.visibility = View.VISIBLE
                     LIST_CONTAINER.visibility = View.INVISIBLE
                 }
+
+                NOTES_PROGRESS_BAR.visibility = View.INVISIBLE
             }
         })
     }
@@ -93,5 +93,12 @@ class NotesActivity : AppCompatActivity() {
     private fun setupAdapter(arrayData: ArrayList<Note>) {
         recyclerView.layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.adapter = CardViewAdapter(arrayData)
+    }
+
+    private fun initFirebase() {
+        firebaseUser = FirebaseAuth.getInstance().currentUser!!
+
+        val firebase = FirebaseDatabase.getInstance()
+        databaseReference = firebase.getReference(Config.TABLE_NOTES)
     }
 }

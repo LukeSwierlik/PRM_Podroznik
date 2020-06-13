@@ -2,85 +2,65 @@ package com.example.podroznik.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import com.example.podroznik.R
+import com.example.podroznik.objects.Config
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.rengwuxian.materialedittext.MaterialEditText
+import kotlinx.android.synthetic.main.activity_register.*
 
 class RegisterActivity : AppCompatActivity() {
-
-    private lateinit var username: MaterialEditText
-    private lateinit var email: MaterialEditText
-    private lateinit var password: MaterialEditText
-
-    private lateinit var btnRegister: Button
-
     private lateinit var auth: FirebaseAuth
-    private lateinit var refDB: DatabaseReference
+    private lateinit var databaseReference: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
-//        val toolbar: Toolbar = findViewById(R.id.toolbar)
-//        toolbar.title = "Register"
-//        setSupportActionBar(toolbar);
-//
-//        val actionbar: ActionBar? = supportActionBar
-//        actionbar!!.setDisplayHomeAsUpEnabled(true)
+        initFirebase()
 
-        username = findViewById(R.id.username)
-        email = findViewById(R.id.email)
-        password = findViewById(R.id.password)
-        btnRegister = findViewById(R.id.BTN_REGISTER)
+        CREATE_ACCOUNT_BTN.setOnClickListener {
+            val username: String = REGISTER_USERNAME_MET.text.toString()
+            val email: String = REGISTER_EMAIL_MET.text.toString()
+            val password: String = REGISTER_PASSWORD_MET.text.toString()
 
-        auth = FirebaseAuth.getInstance()
-
-        btnRegister.setOnClickListener {
-            val txtUsername: String = username.text.toString()
-            val txtEmail: String = email.text.toString()
-            val txtPassword: String = password.text.toString()
-
-            if (txtUsername.isEmpty() || txtEmail.isEmpty() || txtPassword.isEmpty()) {
+            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast
                     .makeText(this, "All fields are required", Toast.LENGTH_SHORT)
                     .show()
-            } else if (txtPassword.length < 3) {
+            } else if (password.length < 6) {
                 Toast
-                    .makeText(this, "Password must be least 3 characters", Toast.LENGTH_SHORT)
+                    .makeText(this, "Password must be least 6 characters", Toast.LENGTH_SHORT)
                     .show()
             } else {
-                register(txtUsername, txtEmail, txtPassword)
+                Toast
+                    .makeText(this, "New user created", Toast.LENGTH_SHORT)
+                    .show()
+
+                createAccount(username, email, password)
             }
         }
     }
 
-    private fun register(username: String, email: String, password: String) {
+    private fun createAccount(username: String, email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(OnCompleteListener<AuthResult>() { task ->
                 if (task.isSuccessful) {
                     val firebaseUser: FirebaseUser? = auth.currentUser
                     val userId: String = firebaseUser!!.uid
 
-                    refDB = FirebaseDatabase
-                        .getInstance()
-                        .getReference("Users")
-                        .child(userId)
-
                     val hashMap: HashMap<String, String> = HashMap()
                     hashMap["id"] = userId
                     hashMap["username"] = username
 
-                    refDB.setValue(hashMap)
+                    databaseReference
+                        .child(userId)
+                        .setValue(hashMap)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 val intent = Intent(this, MainActivity::class.java )
@@ -96,5 +76,13 @@ class RegisterActivity : AppCompatActivity() {
                         .show()
                 }
             })
+    }
+
+    private fun initFirebase() {
+        auth = FirebaseAuth.getInstance()
+
+        databaseReference = FirebaseDatabase
+            .getInstance()
+            .getReference(Config.TABLE_USERS)
     }
 }
