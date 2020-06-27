@@ -183,7 +183,6 @@ class NoteDetailsActivity : AppCompatActivity() {
         }
 
         val firebaseInput = Note(name, description, diameterCircle, userId, noteId, imageURL)
-        Log.d("TAG", firebaseInput.toString())
 
         databaseReference!!.child(noteId).setValue(firebaseInput)
 
