@@ -37,6 +37,8 @@ class CardViewAdapter(
         val idEdit = mNotes[holder.adapterPosition].noteId.toString()
         val imageURLEdit = mNotes[holder.adapterPosition].imageURL
 
+        Log.d("TAG, image", imageURLEdit.toString())
+
         val noteCardView = holder.itemView.NOTE_CARD_VIEW
         val name = holder.itemView.NAME_TEXT_VIEW_CARD
         val description = holder.itemView.DESCRIPTION_TEXT_VIEW_CARD

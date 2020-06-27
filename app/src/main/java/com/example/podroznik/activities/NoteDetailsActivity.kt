@@ -20,7 +20,7 @@ import com.example.podroznik.R
 import com.example.podroznik.models.Note
 import com.example.podroznik.objects.Config
 import com.example.podroznik.objects.Fields
-import com.example.podroznik.objects.GlideApp
+import com.example.podroznik.utils.GlideApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -73,8 +73,6 @@ class NoteDetailsActivity : AppCompatActivity() {
 
         if (requestCode == REQUEST_IMAGE_CAPTURE &&
             resultCode == Activity.RESULT_OK) {
-            Log.d("TAG data", data.toString())
-
             val bitmap: Bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath)
             isChooseNewImage = true
 
@@ -86,13 +84,10 @@ class NoteDetailsActivity : AppCompatActivity() {
             data != null && data.data != null) {
             filePath = data.data
 
-            Log.d("TAG data 2", data.toString())
-
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filePath)
 
                 isChooseNewImage = true
-                Log.d("TAG zmieniono", isChooseNewImage.toString())
 
                 IMAGE_VIEW.setImageBitmap(bitmap)
             } catch (e: IOException) {
@@ -109,16 +104,15 @@ class NoteDetailsActivity : AppCompatActivity() {
         val noteId = intent.getStringExtra(Fields.ID)
         val imageURL = intent.getStringExtra(Fields.IMAGE_URL)
 
-        Log.d("TAG 1", imageURL)
-        Log.d("TAG 1", noteId)
-        Log.d("TAG 1", isChooseNewImage.toString())
-
         if (isChooseNewImage) {
+            // kiedy robisz edycje
             uploadImage(noteId)
-        } else if (noteId.isNotEmpty()) {
+        } else if (noteId != null && imageURL != null) {
+            // kiedy zapisujesz wraz ze zdjęciem
             save(noteId, imageURL)
         } else {
-            save(null, imageURL)
+            // kiedy zapisujesz bez zdjęcia
+            save(null, "")
         }
     }
 
@@ -160,9 +154,6 @@ class NoteDetailsActivity : AppCompatActivity() {
                         val url = taskSnapshot.result
                         val imageURL = url.toString()
 
-                        Log.d("TAG 2", imageURL)
-                        Log.d("TAG 2", noteUuid)
-
                         save(noteUuid, imageURL)
                     }
                 }
@@ -180,7 +171,7 @@ class NoteDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun save(noteUuid: String?, imageURL: String) {
+    private fun save(noteUuid: String?, imageURL: String = "") {
         val name = NAME_EDIT_TEXT.text.toString()
         val description = DESCRIPTION_EDIT_TEXT.text.toString()
         val diameterCircle = DIAMETER_EDIT_TEXT.text.toString().toDouble()
@@ -192,6 +183,7 @@ class NoteDetailsActivity : AppCompatActivity() {
         }
 
         val firebaseInput = Note(name, description, diameterCircle, userId, noteId, imageURL)
+        Log.d("TAG", firebaseInput.toString())
 
         databaseReference!!.child(noteId).setValue(firebaseInput)
 
@@ -211,12 +203,15 @@ class NoteDetailsActivity : AppCompatActivity() {
             DIAMETER_EDIT_TEXT.setText(intent.getStringExtra(Fields.DIAMETER_CIRCLE))
 
             val imageURL = intent.getStringExtra(Fields.IMAGE_URL)
-            val storage = FirebaseStorage.getInstance();
-            val gsReference = storage.getReferenceFromUrl(imageURL)
 
-            GlideApp.with(this)
-                .load(gsReference)
-                .into(IMAGE_VIEW)
+            if (imageURL.isNotEmpty()) {
+                val storage = FirebaseStorage.getInstance();
+                val gsReference = storage.getReferenceFromUrl(imageURL)
+
+                GlideApp.with(this)
+                    .load(gsReference)
+                    .into(IMAGE_VIEW)
+            }
         }
     }
 
